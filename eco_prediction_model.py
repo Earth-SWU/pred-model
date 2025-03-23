@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
+import joblib  # 모델 저장 및 로드를 위한 라이브러리
 
 # 데이터 로드
 data_path = "Test_Training_Data.csv"
@@ -25,11 +26,11 @@ total_mission_count = data.groupby('user_id')['mission_id'].count().reset_index(
 total_mission_count.rename(columns={'mission_id': 'total_mission_count'}, inplace=True)
 data = pd.merge(data, total_mission_count, on='user_id', how='left')
 
-# 미션별 탄소 절감량 매핑
+# 미션별 탄소 절감량 매핑 수정
 carbon_reduction_map = {
-    '텀블러 사용하기': 0.3,
-    '3000걸음 줄이기': 0.7,
-    '전자 영수증 업로드 미션': 0.5
+    '텀블러 사용하기': 0.05,
+    '3000걸음 줄이기': 0.2,
+    '전자 영수증 업로드 미션': 0.1
 }
 data['carbon_reduction'] = data['name_x'].map(carbon_reduction_map)
 
@@ -47,6 +48,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 rf_model = RandomForestRegressor(n_estimators=30, max_depth=7, min_samples_split=10, random_state=42)
 rf_model.fit(X_train, y_train)
 
+# 모델 저장
+joblib.dump(rf_model, 'rf_model.joblib')
+print("모델 저장 완료!")
+
 # 예측 수행
 data['predicted_carbon_reduction'] = rf_model.predict(X)
 
@@ -55,11 +60,11 @@ data['percentile_rank'] = data['predicted_carbon_reduction'].rank(pct=True) * 10
 
 def categorize_user(percentile, total_missions):
     if total_missions < 7:  # Assuming a week's data collection
-        return "아직 더 많은 스텝이 필요해요!"
+        return "만나게 되어 반가워요, 아직 더 많은 스텝이 필요해요!"
     elif percentile >= 75:
         return "상위 25% - 훌륭한 에코스텝러! 🌱"
     elif percentile >= 50:
-        return "상위 50% - 좋은 참여, 더 나아갈 수 있어요! 🚀"
+        return "스탠다드 에코스텝러 - 좋은 참여를 보이고 있네요, 그러나 더 나아갈 수 있어요! 🚀"
     else:
         return "하위 50% - 작은 실천으로 더 큰 변화를! 🌎"
 
