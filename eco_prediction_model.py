@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 
 # 데이터 로드
-data_path = "final_fully_adjusted_data.csv"
+data_path = "Updated_Mission_Data.csv"
 data = pd.read_csv(data_path)
 
 # 날짜 변환
